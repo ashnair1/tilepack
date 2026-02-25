@@ -173,10 +173,26 @@ def generate_tilemapresource_xml(
     tile_format: str = "png",
     title: str = "TMS Tiles",
     tile_size: int = 256,
+    srs: str = "EPSG:3857",
 ) -> str:
     """Generate a TMS tilemapresource.xml string."""
     min_lon, min_lat, max_lon, max_lat = bounds
-    initial_resolution = (2 * math.pi * 6378137.0) / tile_size
+    R = 6378137.0
+
+    if srs == "EPSG:4326":
+        bb_minx, bb_miny = min_lon, min_lat
+        bb_maxx, bb_maxy = max_lon, max_lat
+        origin_x, origin_y = -180.0, -90.0
+        tilesets_profile = "global-geodetic"
+        initial_resolution = 360.0 / tile_size
+    else:  # EPSG:3857
+        bb_minx = min_lon * math.pi * R / 180.0
+        bb_miny = math.log(math.tan(math.pi / 4 + math.radians(min_lat) / 2)) * R
+        bb_maxx = max_lon * math.pi * R / 180.0
+        bb_maxy = math.log(math.tan(math.pi / 4 + math.radians(max_lat) / 2)) * R
+        origin_x, origin_y = -20037508.342789244, -20037508.342789244
+        tilesets_profile = "global-mercator"
+        initial_resolution = (2 * math.pi * R) / tile_size
 
     tile_sets = []
     for z in range(minzoom, maxzoom + 1):
@@ -191,11 +207,11 @@ def generate_tilemapresource_xml(
 <TileMap version="1.0.0" tilemapservice="1.0.0">
   <Title>{title}</Title>
   <Abstract/>
-  <SRS>EPSG:3857</SRS>
-  <BoundingBox minx="{min_lon:.10f}" miny="{min_lat:.10f}" maxx="{max_lon:.10f}" maxy="{max_lat:.10f}"/>
-  <Origin x="-20037508.342789244" y="-20037508.342789244"/>
+  <SRS>{srs}</SRS>
+  <BoundingBox minx="{bb_minx:.10f}" miny="{bb_miny:.10f}" maxx="{bb_maxx:.10f}" maxy="{bb_maxy:.10f}"/>
+  <Origin x="{origin_x}" y="{origin_y}"/>
   <TileFormat width="{tile_size}" height="{tile_size}" mime-type="{mime}" extension="{tile_format}"/>
-  <TileSets profile="global-mercator">
+  <TileSets profile="{tilesets_profile}">
 {chr(10).join(tile_sets)}
   </TileSets>
 </TileMap>

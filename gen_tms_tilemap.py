@@ -127,7 +127,6 @@ def generate_tilemapresource_xml(
     minzoom: int,
     maxzoom: int,
     bbox4326: Tuple[float, float, float, float],
-    profile: str = "global-mercator",
     title: str = "TMS Tiles",
     description: str = "Generated tilemapresource.xml",
     srs: str = "EPSG:3857",
@@ -138,12 +137,22 @@ def generate_tilemapresource_xml(
     This is the de-facto format consumed by many TMS clients.
     """
     min_lon, min_lat, max_lon, max_lat = bbox4326
+    R = 6378137.0
 
-    # global-mercator units-per-pixel at z=0 for 256px tiles:
-    # initial resolution = 2*pi*R / tileSize where R=6378137 for EPSG:3857
-    initial_resolution = (2 * math.pi * 6378137.0) / tile_size
-    origin_x = -20037508.342789244
-    origin_y = -20037508.342789244
+    if srs == "EPSG:4326":
+        bb_minx, bb_miny = min_lon, min_lat
+        bb_maxx, bb_maxy = max_lon, max_lat
+        origin_x, origin_y = -180.0, -90.0
+        tilesets_profile = "global-geodetic"
+        initial_resolution = 360.0 / tile_size
+    else:  # EPSG:3857
+        bb_minx = min_lon * math.pi * R / 180.0
+        bb_miny = math.log(math.tan(math.pi / 4 + math.radians(min_lat) / 2)) * R
+        bb_maxx = max_lon * math.pi * R / 180.0
+        bb_maxy = math.log(math.tan(math.pi / 4 + math.radians(max_lat) / 2)) * R
+        origin_x, origin_y = -20037508.342789244, -20037508.342789244
+        tilesets_profile = "global-mercator"
+        initial_resolution = (2 * math.pi * R) / tile_size
 
     # Compute resolutions per zoom
     tile_sets = []
@@ -153,17 +162,15 @@ def generate_tilemapresource_xml(
             f'    <TileSet href="{base_url}/{z}" units-per-pixel="{res:.14f}" order="{z}"/>'
         )
 
-    # Note: This BoundingBox is in EPSG:4326 per spec variants; some clients ignore it.
-    # The Origin here is EPSG:3857 for global-mercator profile.
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <TileMap version="1.0.0" tilemapservice="1.0.0">
   <Title>{title}</Title>
   <Abstract>{description}</Abstract>
   <SRS>{srs}</SRS>
-  <BoundingBox minx="{min_lon:.10f}" miny="{min_lat:.10f}" maxx="{max_lon:.10f}" maxy="{max_lat:.10f}"/>
+  <BoundingBox minx="{bb_minx:.10f}" miny="{bb_miny:.10f}" maxx="{bb_maxx:.10f}" maxy="{bb_maxy:.10f}"/>
   <Origin x="{origin_x}" y="{origin_y}"/>
   <TileFormat width="{tile_size}" height="{tile_size}" mime-type="image/{'jpeg' if ext in ('jpg','jpeg') else ext.lower()}" extension="{ext.lower()}"/>
-  <TileSets profile="{profile}">
+  <TileSets profile="{tilesets_profile}">
 {os.linesep.join(tile_sets)}
   </TileSets>
 </TileMap>
@@ -180,6 +187,12 @@ def main():
     ap.add_argument("--description", default="Generated tilemapresource.xml")
     ap.add_argument("--out", default="tilemapresource.xml", help="Output filename inside root (default tilemapresource.xml)")
     ap.add_argument("--write-summary-json", action="store_true")
+    ap.add_argument(
+        "--srs",
+        default="EPSG:3857",
+        choices=["EPSG:3857", "EPSG:4326"],
+        help="Spatial reference system for the output XML (default: EPSG:3857)",
+    )
     args = ap.parse_args()
 
     root = Path(args.root).resolve()
@@ -213,6 +226,7 @@ def main():
         bbox4326=bbox,
         title=args.title,
         description=args.description,
+        srs=args.srs,
     )
 
     out_path = root / args.out
