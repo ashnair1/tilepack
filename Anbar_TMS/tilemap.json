@@ -1,6 +1,6 @@
 {
   "root": "/Users/ashwin.nair/Desktop/Projects/tms_packager/Anbar_TMS",
-  "base_url": "http://localhost:8000/tiles",
+  "base_url": "http://localhost:8000",
   "ext": "png",
   "minzoom": 10,
   "maxzoom": 13,
