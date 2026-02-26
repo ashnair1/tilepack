@@ -1,10 +1,10 @@
 # TMS Packager
 
-Convert TMS tile folders into single-file archives (MBTiles / PMTiles) and serve them as TMS endpoints over HTTP.
+Convert TMS tile folders into single-file archives (MBTiles / PMTiles) and serve them as TMS and WMTS endpoints over HTTP.
 
 ## Problem
 
-TMS tile folders contain thousands of small files in deeply nested directories. This makes them slow to copy, hard to manage, and fragile to transfer. TMS Packager solves this by packing tiles into a single archive file while still exposing a standard TMS HTTP endpoint that clients like CesiumForUnreal can consume unchanged.
+TMS tile folders contain thousands of small files in deeply nested directories. This makes them slow to copy, hard to manage, and fragile to transfer. TMS Packager solves this by packing tiles into a single archive file while still exposing standard TMS and WMTS HTTP endpoints that clients like CesiumForUnreal and QGIS can consume.
 
 ## Setup
 
@@ -34,14 +34,25 @@ tms_packager convert ./path/to/tiles output.mbtiles
 tms_packager convert ./path/to/tiles output.pmtiles
 ```
 
-### Serve as TMS endpoint
+### Serve as TMS + WMTS endpoint
 
-Starts a local HTTP server exposing `tilemapresource.xml` and `/{z}/{x}/{y}.png`.
+Starts a local HTTP server exposing both TMS and OGC WMTS 1.0.0 endpoints.
 
 ```bash
 tms_packager serve output.mbtiles --port 8000
 tms_packager serve output.pmtiles --port 8000
 ```
+
+**TMS endpoints:**
+- `http://localhost:8000/tilemapresource.xml`
+- `http://localhost:8000/{z}/{x}/{y}.png`
+
+**WMTS endpoints:**
+- `http://localhost:8000/WMTSCapabilities.xml` — GetCapabilities
+- `http://localhost:8000/wmts/{Layer}/{TileMatrixSet}/{z}/{row}/{col}.png` — RESTful tiles
+- `http://localhost:8000/wmts?Service=WMTS&Request=GetTile&...` — KVP tiles
+
+To load in QGIS: **Layer → Add WMS/WMTS Layer → New**, set URL to `http://localhost:8000/WMTSCapabilities.xml`, then Connect and Add.
 
 ### Validate correctness
 
@@ -65,7 +76,7 @@ tms_packager selftest ./path/to/tiles --base-url http://127.0.0.1:8000 --samples
 
 **Use PMTiles** if you plan to host tiles in cloud storage (S3, Azure Blob, GCS). PMTiles can be served directly from a storage bucket via HTTP range requests with no tile server process needed. However, TMS clients like CesiumForUnreal cannot consume PMTiles directly — they still need a server translating it to TMS endpoints. PMTiles is most useful when paired with a PMTiles-aware frontend (e.g. MapLibre, Leaflet with the pmtiles plugin).
 
-**Either format** works identically when served through `tms_packager serve` — CesiumForUnreal sees the same TMS endpoint regardless of the backing archive.
+**Either format** works identically when served through `tms_packager serve` — clients see the same TMS and WMTS endpoints regardless of the backing archive.
 
 ## Architecture
 
