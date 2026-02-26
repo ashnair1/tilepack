@@ -8,11 +8,11 @@ TMS tile folders contain thousands of small files in deeply nested directories. 
 
 ## Setup
 
-Requires Python 3.11+ (uses the `tms` conda environment).
+Requires Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```bash
-conda activate tms
-pip install -e .
+uv sync
+uv run tilepack --help
 ```
 
 ## Usage
