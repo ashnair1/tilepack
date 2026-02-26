@@ -3,9 +3,9 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tms_packager"
+name = "tilepack"
 version = "0.1.0"
-description = "Convert TMS tile folders to MBTiles/PMTiles and serve them as TMS endpoints"
+description = "Convert TMS tile folders to MBTiles/PMTiles and serve them as TMS/WMTS endpoints"
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.0",
@@ -16,7 +16,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tms_packager = "tms_packager.cli:cli"
+tilepack = "tilepack.cli:cli"
 
 [tool.setuptools.packages.find]
-include = ["tms_packager*"]
+include = ["tilepack*"]

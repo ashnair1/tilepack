@@ -1,4 +1,4 @@
-"""CLI entrypoint for tms_packager."""
+"""CLI entrypoint for tilepack."""
 
 import click
 
@@ -12,7 +12,7 @@ def cli():
 @click.argument("input_root", type=click.Path(exists=True, file_okay=False))
 def verify(input_root):
     """Scan a TMS folder and report tile statistics."""
-    from tms_packager.verify import run_verify
+    from tilepack.verify import run_verify
 
     run_verify(input_root)
 
@@ -22,7 +22,7 @@ def verify(input_root):
 @click.argument("output_file", type=click.Path())
 def convert(input_root, output_file):
     """Convert a TMS folder to MBTiles or PMTiles (inferred from extension)."""
-    from tms_packager.convert import run_convert
+    from tilepack.convert import run_convert
 
     run_convert(input_root, output_file)
 
@@ -33,7 +33,7 @@ def convert(input_root, output_file):
 @click.option("--host", default="127.0.0.1", help="Host to bind to.")
 def serve(archive_file, port, host):
     """Serve an MBTiles or PMTiles archive as a TMS endpoint."""
-    from tms_packager.serve import run_serve
+    from tilepack.serve import run_serve
 
     run_serve(archive_file, host, port)
 
@@ -44,6 +44,6 @@ def serve(archive_file, port, host):
 @click.option("--samples", default=200, help="Number of tiles to sample.")
 def selftest(input_root, base_url, samples):
     """Validate a served TMS endpoint against the original tile folder."""
-    from tms_packager.selftest import run_selftest
+    from tilepack.selftest import run_selftest
 
     run_selftest(input_root, base_url, samples)

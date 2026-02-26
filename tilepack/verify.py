@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 
-from tms_packager.tms_utils import (
+from tilepack.tms_utils import (
     PNG_SIGNATURE,
     collect_zoom_stats,
     detect_scheme,

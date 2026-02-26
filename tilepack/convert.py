@@ -8,7 +8,7 @@ from pathlib import Path
 
 import click
 
-from tms_packager.tms_utils import collect_zoom_stats, compute_bounds, iter_tiles
+from tilepack.tms_utils import collect_zoom_stats, compute_bounds, iter_tiles
 
 
 def run_convert(input_root: str, output_file: str) -> None:

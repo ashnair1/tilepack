@@ -9,8 +9,8 @@ from typing import Callable, Optional, Tuple
 import click
 from fastapi import FastAPI, Query, Response
 
-from tms_packager.tms_utils import generate_tilemapresource_xml
-from tms_packager.wmts_utils import generate_wmts_capabilities_xml
+from tilepack.tms_utils import generate_tilemapresource_xml
+from tilepack.wmts_utils import generate_wmts_capabilities_xml
 
 
 def _add_wmts_routes(

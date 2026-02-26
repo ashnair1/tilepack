@@ -9,7 +9,7 @@ from pathlib import Path
 import click
 import httpx
 
-from tms_packager.tms_utils import PNG_SIGNATURE, iter_tiles
+from tilepack.tms_utils import PNG_SIGNATURE, iter_tiles
 
 
 def run_selftest(input_root: str, base_url: str, samples: int) -> None:
