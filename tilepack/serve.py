@@ -75,7 +75,8 @@ def _build_mbtiles_app(archive_path: Path, *, host: str, port: int) -> FastAPI:
     tile_format = meta.get("format", "png")
 
     bounds_str = meta.get("bounds", "-180,-85,180,85")
-    bounds = tuple(float(v) for v in bounds_str.split(","))
+    parts = [float(v) for v in bounds_str.split(",")]
+    bounds = (parts[0], parts[1], parts[2], parts[3])
     title = meta.get("name", "TMS Tiles")
 
     # TMS capability document
