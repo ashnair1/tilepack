@@ -7,8 +7,12 @@ dist/
 build/
 *.whl
 
-# Editable install
-src/*.egg-info/
+# Legacy scripts
+gen_tms_tilemap.py
+
+# Test data
+*_TMS*/
+*.zip
 
 # Generated archives
 *.mbtiles

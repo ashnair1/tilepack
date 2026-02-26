@@ -19,4 +19,4 @@ dependencies = [
 tms_packager = "tms_packager.cli:cli"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+include = ["tms_packager*"]
