@@ -5,9 +5,9 @@ from __future__ import annotations
 import math
 import re
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Iterable, Tuple
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 EXT_RE = re.compile(r"\.(png|jpg|jpeg|webp)$", re.IGNORECASE)
@@ -29,7 +29,7 @@ class ZoomStats:
         self.count += 1
 
 
-def iter_tiles(root: Path) -> Iterable[Tuple[int, int, int, Path]]:
+def iter_tiles(root: Path) -> Iterable[tuple[int, int, int, Path]]:
     """Yield (z, x, y, filepath) for tiles matching root/z/x/y.ext."""
     for z_dir in sorted(root.iterdir()):
         if not z_dir.is_dir():
@@ -57,9 +57,9 @@ def iter_tiles(root: Path) -> Iterable[Tuple[int, int, int, Path]]:
                 yield z, x, y, f
 
 
-def collect_zoom_stats(root: Path) -> Dict[int, ZoomStats]:
+def collect_zoom_stats(root: Path) -> dict[int, ZoomStats]:
     """Scan a TMS folder and return per-zoom statistics."""
-    stats: Dict[int, ZoomStats] = defaultdict(ZoomStats)
+    stats: dict[int, ZoomStats] = defaultdict(ZoomStats)
     for z, x, y, _ in iter_tiles(root):
         stats[z].update(x, y)
     return dict(stats)
@@ -76,8 +76,8 @@ def _tile2lat_xyz(y_xyz: float, z: int) -> float:
 
 
 def _compute_bounds_as_scheme(
-    zoom_stats: Dict[int, ZoomStats], scheme: str
-) -> Tuple[float, float, float, float]:
+    zoom_stats: dict[int, ZoomStats], scheme: str
+) -> tuple[float, float, float, float]:
     """Compute bounds assuming the Y values follow the given scheme ('tms' or 'xyz').
 
     Returns (min_lon, min_lat, max_lon, max_lat).
@@ -92,11 +92,11 @@ def _compute_bounds_as_scheme(
         if scheme == "tms":
             # TMS: y=0 at bottom (south). Convert to XYZ for the lat formula.
             y_xyz_top = (2**z - 1) - (st.max_y + 1)  # top edge
-            y_xyz_bottom = (2**z - 1) - st.min_y      # bottom edge
+            y_xyz_bottom = (2**z - 1) - st.min_y  # bottom edge
         else:
             # XYZ: y values are already XYZ
-            y_xyz_top = st.min_y          # top edge (smaller y = further north)
-            y_xyz_bottom = st.max_y + 1   # bottom edge
+            y_xyz_top = st.min_y  # top edge (smaller y = further north)
+            y_xyz_bottom = st.max_y + 1  # bottom edge
 
         lat_top = _tile2lat_xyz(max(y_xyz_top, 0), z)
         lat_bottom = _tile2lat_xyz(min(y_xyz_bottom, 2**z), z)
@@ -109,7 +109,7 @@ def _compute_bounds_as_scheme(
     return min_lon, min_lat, max_lon, max_lat
 
 
-def compute_bounds(zoom_stats: Dict[int, ZoomStats]) -> Tuple[float, float, float, float]:
+def compute_bounds(zoom_stats: dict[int, ZoomStats]) -> tuple[float, float, float, float]:
     """Compute a union bounding box in EPSG:4326 from TMS tile ranges.
 
     Assumes Y values follow TMS convention (y=0 at bottom).
@@ -119,9 +119,9 @@ def compute_bounds(zoom_stats: Dict[int, ZoomStats]) -> Tuple[float, float, floa
 
 
 def detect_scheme(
-    zoom_stats: Dict[int, ZoomStats],
+    zoom_stats: dict[int, ZoomStats],
     has_tilemapresource: bool = False,
-) -> Tuple[str, Tuple[float, float, float, float], Tuple[float, float, float, float]]:
+) -> tuple[str, tuple[float, float, float, float], tuple[float, float, float, float]]:
     """Detect whether tile Y coordinates follow TMS or XYZ convention.
 
     Uses two signals:
@@ -169,7 +169,7 @@ def detect_scheme(
 def generate_tilemapresource_xml(
     minzoom: int,
     maxzoom: int,
-    bounds: Tuple[float, float, float, float],
+    bounds: tuple[float, float, float, float],
     tile_format: str = "png",
     title: str = "TMS Tiles",
     tile_size: int = 256,
@@ -197,9 +197,7 @@ def generate_tilemapresource_xml(
     tile_sets = []
     for z in range(minzoom, maxzoom + 1):
         res = initial_resolution / (2**z)
-        tile_sets.append(
-            f'    <TileSet href="{z}" units-per-pixel="{res:.14f}" order="{z}"/>'
-        )
+        tile_sets.append(f'    <TileSet href="{z}" units-per-pixel="{res:.14f}" order="{z}"/>')
 
     mime = "image/jpeg" if tile_format in ("jpg", "jpeg") else f"image/{tile_format}"
 

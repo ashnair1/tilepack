@@ -15,10 +15,7 @@ from tilepack.tms_utils import (
 def _fmt_bounds(bounds: tuple) -> str:
     """Format bounds as a readable string with lat/lon labels."""
     min_lon, min_lat, max_lon, max_lat = bounds
-    return (
-        f"lon [{min_lon:.4f}, {max_lon:.4f}]  "
-        f"lat [{min_lat:.4f}, {max_lat:.4f}]"
-    )
+    return f"lon [{min_lon:.4f}, {max_lon:.4f}]  lat [{min_lat:.4f}, {max_lat:.4f}]"
 
 
 def run_verify(input_root: str) -> None:
@@ -66,7 +63,7 @@ def run_verify(input_root: str) -> None:
     has_xml = (root / "tilemapresource.xml").exists()
     detected, tms_bounds, xyz_bounds = detect_scheme(stats, has_tilemapresource=has_xml)
 
-    click.echo(f"\nY-axis scheme detection:")
+    click.echo("\nY-axis scheme detection:")
     click.echo(f"  tilemapresource.xml present: {'yes' if has_xml else 'no'}")
     click.echo(f"  If TMS (y=0 at south):  {_fmt_bounds(tms_bounds)}")
     click.echo(f"  If XYZ (y=0 at north):  {_fmt_bounds(xyz_bounds)}")

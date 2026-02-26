@@ -91,7 +91,7 @@ def run_selftest(input_root: str, base_url: str, samples: int) -> None:
     click.echo(f"Avg latency:  {avg_latency:.1f}ms")
 
     if errors:
-        click.echo(f"\nFailures:")
+        click.echo("\nFailures:")
         for e in errors[:20]:
             click.echo(e)
         if len(errors) > 20:

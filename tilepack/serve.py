@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional, Tuple
 
 import click
 from fastapi import FastAPI, Query, Response
@@ -18,7 +18,7 @@ def _add_wmts_routes(
     *,
     wmts_xml: str,
     layer_name: str,
-    get_tile_tms: Callable[[int, int, int], Optional[bytes]],
+    get_tile_tms: Callable[[int, int, int], bytes | None],
 ) -> None:
     """Add WMTS endpoints (capabilities, RESTful tiles, KVP) to a FastAPI app.
 
@@ -61,9 +61,7 @@ def _add_wmts_routes(
         return Response(content=data, media_type="image/png")
 
 
-def _build_mbtiles_app(
-    archive_path: Path, *, host: str, port: int
-) -> FastAPI:
+def _build_mbtiles_app(archive_path: Path, *, host: str, port: int) -> FastAPI:
     app = FastAPI()
     db_path = str(archive_path)
 
@@ -93,7 +91,7 @@ def _build_mbtiles_app(
     def tilemapresource():
         return Response(content=xml, media_type="application/xml")
 
-    def _get_tile_tms(z: int, x: int, y: int) -> Optional[bytes]:
+    def _get_tile_tms(z: int, x: int, y: int) -> bytes | None:
         conn = sqlite3.connect(db_path)
         row = conn.execute(
             "SELECT tile_data FROM tiles WHERE zoom_level=? AND tile_column=? AND tile_row=?",
@@ -123,12 +121,11 @@ def _build_mbtiles_app(
     return app
 
 
-def _build_pmtiles_app(
-    archive_path: Path, *, host: str, port: int
-) -> FastAPI:
+def _build_pmtiles_app(archive_path: Path, *, host: str, port: int) -> FastAPI:
     app = FastAPI()
 
-    from pmtiles.reader import MmapSource, Reader as PMTilesReader
+    from pmtiles.reader import MmapSource
+    from pmtiles.reader import Reader as PMTilesReader
 
     source = MmapSource(open(archive_path, "rb"))
     reader = PMTilesReader(source)
@@ -157,7 +154,7 @@ def _build_pmtiles_app(
     def tilemapresource():
         return Response(content=xml, media_type="application/xml")
 
-    def _get_tile_tms(z: int, x: int, y_tms: int) -> Optional[bytes]:
+    def _get_tile_tms(z: int, x: int, y_tms: int) -> bytes | None:
         # PMTiles stores in XYZ — flip TMS y to XYZ y
         y_xyz = (2**z - 1) - y_tms
         return reader.get(z, x, y_xyz)
@@ -196,13 +193,17 @@ def run_serve(archive_file: str, host: str, port: int) -> None:
         raise SystemExit(1)
 
     click.echo(f"Serving {archive_path.name} on http://{host}:{port}")
-    click.echo(f"  TMS:")
+    click.echo("  TMS:")
     click.echo(f"    tilemapresource.xml → http://{host}:{port}/tilemapresource.xml")
     click.echo(f"    Tiles               → http://{host}:{port}/{{z}}/{{x}}/{{y}}.png")
-    click.echo(f"  WMTS:")
+    click.echo("  WMTS:")
     click.echo(f"    Capabilities        → http://{host}:{port}/WMTSCapabilities.xml")
-    click.echo(f"    Tiles (REST)        → http://{host}:{port}/wmts/{{Layer}}/{{TileMatrixSet}}/{{z}}/{{row}}/{{col}}.png")
-    click.echo(f"    Tiles (KVP)         → http://{host}:{port}/wmts?Service=WMTS&Request=GetTile&...\n")
+    click.echo(
+        f"    Tiles (REST)        → http://{host}:{port}/wmts/{{Layer}}/{{TileMatrixSet}}/{{z}}/{{row}}/{{col}}.png"
+    )
+    click.echo(
+        f"    Tiles (KVP)         → http://{host}:{port}/wmts?Service=WMTS&Request=GetTile&...\n"
+    )
 
     import uvicorn
 

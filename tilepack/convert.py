@@ -26,7 +26,7 @@ def run_convert(input_root: str, output_file: str) -> None:
 
 
 def _convert_mbtiles(root: Path, out: Path) -> None:
-    click.echo(f"Converting TMS folder → MBTiles")
+    click.echo("Converting TMS folder → MBTiles")
     click.echo(f"  Input:  {root}")
     click.echo(f"  Output: {out}\n")
 
@@ -41,7 +41,6 @@ def _convert_mbtiles(root: Path, out: Path) -> None:
     minzoom = min(stats)
     maxzoom = max(stats)
     bounds = compute_bounds(stats)
-    total = sum(s.count for s in stats.values())
 
     # Create MBTiles database
     if out.exists():
@@ -49,9 +48,7 @@ def _convert_mbtiles(root: Path, out: Path) -> None:
 
     conn = sqlite3.connect(str(out))
     conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute(
-        "CREATE TABLE metadata (name TEXT, value TEXT)"
-    )
+    conn.execute("CREATE TABLE metadata (name TEXT, value TEXT)")
     conn.execute(
         "CREATE TABLE tiles ("
         "  zoom_level INTEGER,"
@@ -60,9 +57,7 @@ def _convert_mbtiles(root: Path, out: Path) -> None:
         "  tile_data BLOB"
         ")"
     )
-    conn.execute(
-        "CREATE UNIQUE INDEX tile_index ON tiles (zoom_level, tile_column, tile_row)"
-    )
+    conn.execute("CREATE UNIQUE INDEX tile_index ON tiles (zoom_level, tile_column, tile_row)")
 
     # Populate metadata
     bounds_str = f"{bounds[0]:.6f},{bounds[1]:.6f},{bounds[2]:.6f},{bounds[3]:.6f}"
@@ -108,14 +103,14 @@ def _convert_mbtiles(root: Path, out: Path) -> None:
     elapsed = time.perf_counter() - t0
     size_mb = out.stat().st_size / (1024 * 1024)
 
-    click.echo(f"Done.")
+    click.echo("Done.")
     click.echo(f"  Tiles inserted: {inserted:,}")
     click.echo(f"  File size:      {size_mb:.1f} MB")
     click.echo(f"  Duration:       {elapsed:.1f}s")
 
 
 def _convert_pmtiles(root: Path, out: Path) -> None:
-    click.echo(f"Converting TMS folder → PMTiles")
+    click.echo("Converting TMS folder → PMTiles")
     click.echo(f"  Input:  {root}")
     click.echo(f"  Output: {out}\n")
 
@@ -180,7 +175,7 @@ def _convert_pmtiles(root: Path, out: Path) -> None:
     elapsed = time.perf_counter() - t0
     size_mb = out.stat().st_size / (1024 * 1024)
 
-    click.echo(f"Done.")
+    click.echo("Done.")
     click.echo(f"  Tiles written:  {total:,}")
     click.echo(f"  File size:      {size_mb:.1f} MB")
     click.echo(f"  Duration:       {elapsed:.1f}s")

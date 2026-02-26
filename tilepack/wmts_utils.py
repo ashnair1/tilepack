@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Tuple
 from xml.sax.saxutils import escape
-
 
 # OGC WMTS constants for GoogleMapsCompatible tile matrix set
 _R = 6378137.0  # WGS-84 Earth radius in metres
@@ -20,7 +18,7 @@ def generate_wmts_capabilities_xml(
     *,
     minzoom: int,
     maxzoom: int,
-    bounds: Tuple[float, float, float, float],
+    bounds: tuple[float, float, float, float],
     tile_format: str = "png",
     title: str = "WMTS Tiles",
     tile_size: int = 256,
@@ -71,9 +69,7 @@ def generate_wmts_capabilities_xml(
     bb_maxx = max_lon * math.pi * _R / 180.0
     bb_maxy = math.log(math.tan(math.pi / 4 + math.radians(max_lat) / 2)) * _R
 
-    resource_url = (
-        f'{base_url}/wmts/{title}/{tms_id}/{{TileMatrix}}/{{TileRow}}/{{TileCol}}.png'
-    )
+    resource_url = f"{base_url}/wmts/{title}/{tms_id}/{{TileMatrix}}/{{TileRow}}/{{TileCol}}.png"
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <Capabilities xmlns="http://www.opengis.net/wmts/1.0"
@@ -120,10 +116,17 @@ def generate_wmts_capabilities_xml(
 """
 
 
+def _lat_to_wmts_row(lat_deg: float, n: int) -> int:
+    """Convert latitude (degrees) to WMTS tile row at grid size n."""
+    lat_rad = math.radians(lat_deg)
+    frac = (1.0 - math.log(math.tan(lat_rad) + 1.0 / math.cos(lat_rad)) / math.pi) / 2.0
+    return int(math.floor(frac * n))
+
+
 def _tile_matrix_set_limits(
     minzoom: int,
     maxzoom: int,
-    bounds: Tuple[float, float, float, float],
+    bounds: tuple[float, float, float, float],
 ) -> str:
     """Compute TileMatrixSetLimits for the given bounds at each zoom level.
 
@@ -139,20 +142,8 @@ def _tile_matrix_set_limits(
         max_col = min(max_col, n - 1)
 
         # Row range (WMTS row = XYZ y, row 0 at north)
-        min_row = int(
-            math.floor(
-                (1.0 - math.log(math.tan(math.radians(max_lat)) + 1.0 / math.cos(math.radians(max_lat))) / math.pi)
-                / 2.0
-                * n
-            )
-        )
-        max_row = int(
-            math.floor(
-                (1.0 - math.log(math.tan(math.radians(min_lat)) + 1.0 / math.cos(math.radians(min_lat))) / math.pi)
-                / 2.0
-                * n
-            )
-        )
+        min_row = _lat_to_wmts_row(max_lat, n)
+        max_row = _lat_to_wmts_row(min_lat, n)
         min_row = max(min_row, 0)
         max_row = min(max_row, n - 1)
 
