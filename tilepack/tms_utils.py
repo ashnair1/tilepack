@@ -1,7 +1,5 @@
 """Shared utilities for TMS tile iteration, bounds computation, and XML generation."""
 
-from __future__ import annotations
-
 import math
 import re
 from collections import defaultdict

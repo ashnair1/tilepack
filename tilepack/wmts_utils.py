@@ -1,7 +1,5 @@
 """Generate OGC WMTS GetCapabilities XML documents."""
 
-from __future__ import annotations
-
 import math
 from xml.sax.saxutils import escape
 

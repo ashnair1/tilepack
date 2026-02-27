@@ -1,7 +1,5 @@
 """Selftest command: validate served tiles against original TMS folder."""
 
-from __future__ import annotations
-
 import random
 import time
 from pathlib import Path

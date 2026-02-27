@@ -1,7 +1,5 @@
 """Serve command: expose an MBTiles or PMTiles archive as a TMS and WMTS endpoint."""
 
-from __future__ import annotations
-
 import sqlite3
 from collections.abc import Callable
 from pathlib import Path
