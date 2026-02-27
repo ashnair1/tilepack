@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from tilepack.convert import run_convert
 from tilepack.tms_utils import PNG_SIGNATURE
 
 # Minimal valid PNG: 1x1 pixel, 8-bit RGBA
@@ -76,7 +77,6 @@ def tiny_xyz_dir(tmp_path: Path) -> Path:
 @pytest.fixture()
 def tiny_mbtiles(tmp_path: Path, tiny_tms_dir: Path) -> Path:
     """Convert tiny_tms_dir to a small .mbtiles file."""
-    from tilepack.convert import run_convert
 
     out = tmp_path / "test.mbtiles"
     run_convert(str(tiny_tms_dir), str(out), scheme="tms")
@@ -86,7 +86,6 @@ def tiny_mbtiles(tmp_path: Path, tiny_tms_dir: Path) -> Path:
 @pytest.fixture()
 def tiny_pmtiles(tmp_path: Path, tiny_tms_dir: Path) -> Path:
     """Convert tiny_tms_dir to a small .pmtiles file."""
-    from tilepack.convert import run_convert
 
     out = tmp_path / "test.pmtiles"
     run_convert(str(tiny_tms_dir), str(out), scheme="tms")

@@ -1,9 +1,12 @@
 """CLI entrypoint for tilepack."""
 
+from importlib.metadata import version
+
 import click
 
 
 @click.group()
+@click.version_option(version("tilepack"), prog_name="tilepack")
 def cli():
     """Convert TMS/XYZ tile folders to MBTiles/PMTiles and serve as TMS/WMTS endpoints."""
 
