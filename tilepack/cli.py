@@ -5,7 +5,7 @@ import click
 
 @click.group()
 def cli():
-    """Convert TMS tile folders to MBTiles/PMTiles and serve as TMS endpoints."""
+    """Convert TMS/XYZ tile folders to MBTiles/PMTiles and serve as TMS/WMTS endpoints."""
 
 
 @cli.command()
@@ -20,11 +20,17 @@ def verify(input_root):
 @cli.command()
 @click.argument("input_root", type=click.Path(exists=True, file_okay=False))
 @click.argument("output_file", type=click.Path())
-def convert(input_root, output_file):
-    """Convert a TMS folder to MBTiles or PMTiles (inferred from extension)."""
+@click.option(
+    "--scheme",
+    type=click.Choice(["tms", "xyz"]),
+    default=None,
+    help="Input tile scheme (auto-detected if omitted).",
+)
+def convert(input_root, output_file, scheme):
+    """Convert a tile folder to MBTiles or PMTiles (inferred from extension)."""
     from tilepack.convert import run_convert
 
-    run_convert(input_root, output_file)
+    run_convert(input_root, output_file, scheme=scheme)
 
 
 @cli.command()

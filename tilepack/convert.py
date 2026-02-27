@@ -1,4 +1,4 @@
-"""Convert command: TMS folder → MBTiles or PMTiles."""
+"""Convert command: tile folder → MBTiles or PMTiles."""
 
 from __future__ import annotations
 
@@ -8,39 +8,49 @@ from pathlib import Path
 
 import click
 
-from tilepack.tms_utils import collect_zoom_stats, compute_bounds, iter_tiles
+from tilepack.tms_utils import collect_zoom_stats, compute_bounds, detect_scheme, iter_tiles
 
 
-def run_convert(input_root: str, output_file: str) -> None:
+def run_convert(input_root: str, output_file: str, scheme: str | None = None) -> None:
     root = Path(input_root).resolve()
     out = Path(output_file).resolve()
     ext = out.suffix.lower()
 
-    if ext == ".mbtiles":
-        _convert_mbtiles(root, out)
-    elif ext == ".pmtiles":
-        _convert_pmtiles(root, out)
-    else:
-        click.echo(f"Unknown output format: {ext} (expected .mbtiles or .pmtiles)", err=True)
-        raise SystemExit(1)
-
-
-def _convert_mbtiles(root: Path, out: Path) -> None:
-    click.echo("Converting TMS folder → MBTiles")
-    click.echo(f"  Input:  {root}")
-    click.echo(f"  Output: {out}\n")
-
-    t0 = time.perf_counter()
-
-    # Collect stats for metadata
+    # Scan tiles
     stats = collect_zoom_stats(root)
     if not stats:
         click.echo("No tiles found.", err=True)
         raise SystemExit(1)
 
+    # Detect or use provided scheme
+    if scheme is None:
+        has_xml = (root / "tilemapresource.xml").exists()
+        detected, _, _ = detect_scheme(stats, has_tilemapresource=has_xml)
+        scheme = detected
+        click.echo(f"Detected input scheme: {scheme.upper()}")
+    else:
+        click.echo(f"Using specified scheme: {scheme.upper()}")
+
+    if ext == ".mbtiles":
+        _convert_mbtiles(root, out, stats=stats, scheme=scheme)
+    elif ext == ".pmtiles":
+        _convert_pmtiles(root, out, stats=stats, scheme=scheme)
+    else:
+        click.echo(f"Unknown output format: {ext} (expected .mbtiles or .pmtiles)", err=True)
+        raise SystemExit(1)
+
+
+def _convert_mbtiles(root: Path, out: Path, *, stats: dict, scheme: str) -> None:
+    click.echo("Converting tile folder → MBTiles")
+    click.echo(f"  Input:  {root}")
+    click.echo(f"  Output: {out}\n")
+
+    t0 = time.perf_counter()
+
     minzoom = min(stats)
     maxzoom = max(stats)
-    bounds = compute_bounds(stats)
+    bounds = compute_bounds(stats, scheme=scheme)
+    flip_y = scheme == "xyz"
 
     # Create MBTiles database
     if out.exists():
@@ -85,8 +95,9 @@ def _convert_mbtiles(root: Path, out: Path) -> None:
 
     for z, x, y, tile_path in iter_tiles(root):
         tile_data = tile_path.read_bytes()
-        # No Y-flip: MBTiles uses TMS scheme (same as input)
-        batch.append((z, x, y, tile_data))
+        # MBTiles uses TMS scheme — flip Y if input is XYZ
+        y_tms = (2**z - 1) - y if flip_y else y
+        batch.append((z, x, y_tms, tile_data))
 
         if len(batch) >= batch_size:
             conn.executemany("INSERT INTO tiles VALUES (?, ?, ?, ?)", batch)
@@ -109,8 +120,8 @@ def _convert_mbtiles(root: Path, out: Path) -> None:
     click.echo(f"  Duration:       {elapsed:.1f}s")
 
 
-def _convert_pmtiles(root: Path, out: Path) -> None:
-    click.echo("Converting TMS folder → PMTiles")
+def _convert_pmtiles(root: Path, out: Path, *, stats: dict, scheme: str) -> None:
+    click.echo("Converting tile folder → PMTiles")
     click.echo(f"  Input:  {root}")
     click.echo(f"  Output: {out}\n")
 
@@ -118,21 +129,17 @@ def _convert_pmtiles(root: Path, out: Path) -> None:
 
     from pmtiles.tile import Compression, TileType, zxy_to_tileid
 
-    stats = collect_zoom_stats(root)
-    if not stats:
-        click.echo("No tiles found.", err=True)
-        raise SystemExit(1)
-
     minzoom = min(stats)
     maxzoom = max(stats)
-    bounds = compute_bounds(stats)
+    bounds = compute_bounds(stats, scheme=scheme)
     total = sum(s.count for s in stats.values())
+    flip_y = scheme == "tms"
 
     # Build entries: list of (tileid, tile_data)
-    # PMTiles uses XYZ internally, so we must flip Y
+    # PMTiles uses XYZ internally — flip Y only if input is TMS
     def tile_entries():
-        for z, x, y_tms, tile_path in iter_tiles(root):
-            y_xyz = (2**z - 1) - y_tms
+        for z, x, y, tile_path in iter_tiles(root):
+            y_xyz = (2**z - 1) - y if flip_y else y
             tile_id = zxy_to_tileid(z, x, y_xyz)
             yield tile_id, tile_path.read_bytes()
 

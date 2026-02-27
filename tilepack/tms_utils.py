@@ -109,13 +109,16 @@ def _compute_bounds_as_scheme(
     return min_lon, min_lat, max_lon, max_lat
 
 
-def compute_bounds(zoom_stats: dict[int, ZoomStats]) -> tuple[float, float, float, float]:
-    """Compute a union bounding box in EPSG:4326 from TMS tile ranges.
+def compute_bounds(
+    zoom_stats: dict[int, ZoomStats],
+    scheme: str = "tms",
+) -> tuple[float, float, float, float]:
+    """Compute a union bounding box in EPSG:4326 from tile ranges.
 
-    Assumes Y values follow TMS convention (y=0 at bottom).
-    Returns (min_lon, min_lat, max_lon, max_lat).
+    ``scheme`` indicates how to interpret Y values: ``"tms"`` (y=0 at south)
+    or ``"xyz"`` (y=0 at north).  Returns (min_lon, min_lat, max_lon, max_lat).
     """
-    return _compute_bounds_as_scheme(zoom_stats, "tms")
+    return _compute_bounds_as_scheme(zoom_stats, scheme)
 
 
 def detect_scheme(
