@@ -8,6 +8,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
+from xml.sax.saxutils import escape
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 EXT_RE = re.compile(r"\.(png|jpg|jpeg|webp)$", re.IGNORECASE)
@@ -206,7 +207,7 @@ def generate_tilemapresource_xml(
 
     return f"""<?xml version="1.0" encoding="UTF-8"?>
 <TileMap version="1.0.0" tilemapservice="1.0.0">
-  <Title>{title}</Title>
+  <Title>{escape(title)}</Title>
   <Abstract/>
   <SRS>{srs}</SRS>
   <BoundingBox minx="{bb_minx:.10f}" miny="{bb_miny:.10f}" maxx="{bb_maxx:.10f}" maxy="{bb_maxy:.10f}"/>
