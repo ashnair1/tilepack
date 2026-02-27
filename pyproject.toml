@@ -2,6 +2,7 @@
 name = "tilepack"
 version = "0.1.0"
 description = "Convert TMS tile folders to MBTiles/PMTiles and serve them as TMS/WMTS endpoints"
+license = "MIT"
 requires-python = ">=3.11"
 dependencies = [
     "click>=8.0",
