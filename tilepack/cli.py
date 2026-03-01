@@ -12,12 +12,12 @@ def cli():
 
 
 @cli.command()
-@click.argument("input_root", type=click.Path(exists=True, file_okay=False))
-def verify(input_root):
-    """Scan a TMS folder and report tile statistics."""
+@click.argument("input_path", type=click.Path(exists=True))
+def verify(input_path):
+    """Scan a TMS folder or MBTiles/PMTiles archive and report tile statistics."""
     from tilepack.verify import run_verify
 
-    run_verify(input_root)
+    run_verify(input_path)
 
 
 @cli.command()

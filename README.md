@@ -29,12 +29,14 @@ uv sync --group dev
 
 ## Usage
 
-### Verify a tile folder
+### Verify tiles
 
-Scan a tile folder and report zoom levels, tile counts, format, and detected Y-axis scheme (TMS vs XYZ).
+Scan a tile folder or archive and report zoom levels, tile counts, format, and bounds.
 
 ```bash
-tilepack verify ./path/to/tiles
+tilepack verify ./path/to/tiles      # TMS/XYZ folder
+tilepack verify output.mbtiles       # MBTiles archive
+tilepack verify output.pmtiles       # PMTiles archive
 ```
 
 ### Convert to archive
