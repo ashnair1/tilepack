@@ -1,6 +1,6 @@
 [project]
 name = "tilepack"
-version = "0.1.0"
+version = "0.2.0"
 description = "Convert TMS tile folders to MBTiles/PMTiles and serve them as TMS/WMTS endpoints"
 authors = [{ name = "Ashwin Nair", email = "ashnair0007@gmail.com" }]
 license = "MIT"
