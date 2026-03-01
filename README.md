@@ -1,6 +1,7 @@
 # tilepack
 
 [![CI](https://github.com/ashnair1/tilepack/actions/workflows/ci.yml/badge.svg)](https://github.com/ashnair1/tilepack/actions/workflows/ci.yml)
+[![Docs](https://github.com/ashnair1/tilepack/actions/workflows/docs.yml/badge.svg)](https://ashnair1.github.io/tilepack)
 [![PyPI](https://img.shields.io/pypi/v/tilepack)](https://pypi.org/project/tilepack/)
 [![Python](https://img.shields.io/pypi/pyversions/tilepack)](https://pypi.org/project/tilepack/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
