@@ -32,6 +32,7 @@ tilepack = "tilepack.cli:cli"
 
 [dependency-groups]
 dev = ["ruff>=0.9", "ty>=0.0.2", "pytest>=8.0"]
+docs = ["mkdocs-material>=9.0", "mkdocs<2"]
 
 [build-system]
 requires = ["hatchling"]

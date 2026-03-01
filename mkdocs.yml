@@ -1,0 +1,32 @@
+site_name: tilepack
+site_url: https://ashnair1.github.io/tilepack
+site_description: Pack raster tile folders into single-file archives and serve them as TMS/WMTS endpoints
+repo_url: https://github.com/ashnair1/tilepack
+repo_name: ashnair1/tilepack
+
+theme:
+  name: material
+  icon:
+    logo: material/package-variant-closed-check
+  palette:
+    - scheme: default
+      primary: green
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Usage: usage.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
