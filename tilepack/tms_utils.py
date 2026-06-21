@@ -216,3 +216,16 @@ def generate_tilemapresource_xml(
   </TileSets>
 </TileMap>
 """
+
+
+def detect_tile_format(tile_data: bytes) -> str:
+    """Sniff the image format from a tile's magic bytes.
+
+    Returns an MBTiles/TileJSON ``format`` string ("png", "jpg", "webp").
+    Falls back to "png" for unrecognized data.
+    """
+    if tile_data[:4] == b"RIFF" and tile_data[8:12] == b"WEBP":
+        return "webp"
+    if tile_data[:2] == b"\xff\xd8":
+        return "jpg"
+    return "png"

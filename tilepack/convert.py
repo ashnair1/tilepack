@@ -6,7 +6,13 @@ from pathlib import Path
 
 import click
 
-from tilepack.tms_utils import collect_zoom_stats, compute_bounds, detect_scheme, iter_tiles
+from tilepack.tms_utils import (
+    collect_zoom_stats,
+    compute_bounds,
+    detect_scheme,
+    detect_tile_format,
+    iter_tiles,
+)
 
 
 def run_convert(input_root: str, output_file: str, scheme: str | None = None) -> None:
@@ -50,6 +56,14 @@ def _convert_mbtiles(root: Path, out: Path, *, stats: dict, scheme: str) -> None
     bounds = compute_bounds(stats, scheme=scheme)
     flip_y = scheme == "xyz"
 
+    def _first_tile_format(root: Path) -> str:
+        """Detect the tile format from the first tile in the folder."""
+        for _z, _x, _y, tile_path in iter_tiles(root):
+            return detect_tile_format(tile_path.read_bytes())
+        return "png"
+
+    tile_format = _first_tile_format(root)
+
     # Create MBTiles database
     if out.exists():
         out.unlink()
@@ -75,7 +89,7 @@ def _convert_mbtiles(root: Path, out: Path, *, stats: dict, scheme: str) -> None
 
     meta = {
         "name": root.name,
-        "format": "png",
+        "format": tile_format,
         "bounds": bounds_str,
         "center": f"{center_lon:.6f},{center_lat:.6f},{center_zoom}",
         "minzoom": str(minzoom),
@@ -145,6 +159,13 @@ def _convert_pmtiles(root: Path, out: Path, *, stats: dict, scheme: str) -> None
     click.echo("Reading and sorting tiles...")
     entries = sorted(tile_entries(), key=lambda e: e[0])
 
+    tile_format = detect_tile_format(entries[0][1]) if entries else "png"
+    tile_type = {
+        "png": TileType.PNG,
+        "jpg": TileType.JPEG,
+        "webp": TileType.WEBP,
+    }[tile_format]
+
     # Write PMTiles using the low-level writer
     from pmtiles.writer import Writer as PMTilesWriter
 
@@ -159,7 +180,7 @@ def _convert_pmtiles(root: Path, out: Path, *, stats: dict, scheme: str) -> None
 
         writer.finalize(
             header={
-                "tile_type": TileType.PNG,
+                "tile_type": tile_type,
                 "min_zoom": minzoom,
                 "max_zoom": maxzoom,
                 "min_lon_e7": int(bounds[0] * 1e7),
@@ -170,7 +191,7 @@ def _convert_pmtiles(root: Path, out: Path, *, stats: dict, scheme: str) -> None
             },
             metadata={
                 "name": root.name,
-                "format": "png",
+                "format": tile_format,
                 "bounds": f"{bounds[0]:.6f},{bounds[1]:.6f},{bounds[2]:.6f},{bounds[3]:.6f}",
                 "minzoom": str(minzoom),
                 "maxzoom": str(maxzoom),
