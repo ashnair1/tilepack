@@ -9,6 +9,7 @@ from tilepack.tms_utils import (
     collect_zoom_stats,
     compute_bounds,
     detect_scheme,
+    detect_tile_format,
     generate_tilemapresource_xml,
     iter_tiles,
 )
@@ -159,6 +160,21 @@ class TestDetectScheme:
         assert len(xyz_bounds) == 4
         # TMS and XYZ bounds should differ (mirrored latitudes)
         assert tms_bounds != xyz_bounds
+
+
+class TestDetectTileFormat:
+    def test_png(self):
+        assert detect_tile_format(b"\x89PNG\r\n\x1a\n" + b"\x00" * 8) == "png"
+
+    def test_jpeg(self):
+        assert detect_tile_format(b"\xff\xd8\xff\xe0" + b"\x00" * 8) == "jpg"
+
+    def test_webp(self):
+        # RIFF container with WEBP fourcc at offset 8
+        assert detect_tile_format(b"RIFF\x00\x00\x00\x00WEBPVP8 ") == "webp"
+
+    def test_unknown_falls_back_to_png(self):
+        assert detect_tile_format(b"not an image") == "png"
 
 
 class TestGenerateTimemapresourceXml:
